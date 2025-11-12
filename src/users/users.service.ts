@@ -1,72 +1,58 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Profile } from '../profile/profile.entity';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
-  users: {
-    id: number;
-    name: string;
-    age: number;
-    gender?: string;
-    isMarried: boolean;
-    email: string;
-  }[] = [
-    {
-      id: 1,
-      name: 'John Doe',
-      age: 30,
-      gender: 'male',
-      isMarried: true,
-      email: 'john@gamil.com',
-    },
-    {
-      id: 2,
-      name: 'Mark Doe',
-      age: 50,
-      gender: 'male',
-      isMarried: true,
-      email: 'mark@gamil.com',
-    },
-    {
-      id: 4,
-      name: 'Joice Doe',
-      age: 50,
-      gender: 'female',
-      isMarried: false,
-      email: 'joice@gmail.com',
-    },
-  ];
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(Profile)
+    private profileRepository: Repository<Profile>,
+  ) {}
 
   getAllUser() {
-    return this.users;
+    return this.userRepository.find({
+      relations: {
+        profile: true,
+      }, //include profile data with user
+    });
   }
-  getUserById(id: number) {
-    return this.users.find((user) => user.id === id);
+  getUserById(id: number) {}
+
+  getUserByParams(id: number, age: number, name: string) {}
+
+  getUsersByQuery(gender: string, isMarried: boolean) {}
+
+  public async createUser(userDto: CreateUserDto) {
+    userDto.profile = userDto.profile ?? {}; // ensure profile is at least an empty object
+
+    //create user and link profile
+    let user = this.userRepository.create(userDto);
+    return this.userRepository.save(user);
   }
 
-  getUserByParams(id: number, age: number, name: string) {
-    const result = this.users.find(
-      (user) => user.id === id && user.age === age && user.name === name,
-    );
-    console.log('Result===>', result);
-    return result;
-  }
+  public async deleteUser(id: number) {
+    //find user by id
+    // const user = await this.userRepository.findOneBy({ id });
+    // Delete user
 
-  getUsersByQuery(gender: string, isMarried: boolean) {
-    console.log('isMarried===>', isMarried);
-    return this.users.filter(
-      (e) => e.gender === gender && e.isMarried === isMarried,
-    );
-  }
+    //*** when delete a user the associated profile will be deleted automatically due to onDelete: 'CASCADE' which is on profile entity ***//
 
-  createUser(user: {
-    id: number;
-    name: string;
-    age: number;
-    gender?: string;
-    isMarried: boolean;
-    email: string;
-  }) {
-    this.users.push(user);
-    return user;
+    await this.userRepository.delete(id);
+    //Delete profile
+    // if (user?.profile) {
+    //   await this.profileRepository.delete(user.profile?.id);
+    //   console.log('Associated profile deleted:>>>>>>>>.');
+    // }
+    // console.log('Associated profile deleted:>>>>>>>>.');
+
+    return {
+      message: 'User and associated profile deleted successfully',
+      deleted: true,
+    };
   }
 }

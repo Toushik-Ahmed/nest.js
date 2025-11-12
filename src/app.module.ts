@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ProfileModule } from './profile/profile.module';
 import { TweetModule } from './tweet/tweet.module';
 import { UsersModule } from './users/users.module';
 
@@ -14,8 +15,9 @@ import { UsersModule } from './users/users.module';
       inject: [],
       useFactory: () => ({
         type: 'postgres',
-        entities: [],
-        // synchronize: true,
+        // entities: [User, Profile],
+        autoLoadEntities: true,//if you use this you dont need to add entities array
+        synchronize: true, //should be false in production
         host: 'localhost',
         port: 5432,
         username: 'postgres',
@@ -23,6 +25,7 @@ import { UsersModule } from './users/users.module';
         database: 'nestjs',
       }),
     }),
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
