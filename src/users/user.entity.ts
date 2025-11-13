@@ -3,11 +3,14 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Profile } from '../profile/profile.entity';
+import { Tweet } from '../tweet/tweet.entity';
+
 
 @Entity()
 export class User {
@@ -43,6 +46,9 @@ export class User {
   })
   // @JoinColumn() // creates the foreign key column as profileId in User table
   profile?: Profile; // one to one relationship with Profile entity
+
+  @OneToMany(() => Tweet, (tweet) => tweet.user)
+  tweets: Tweet[];
 
   @CreateDateColumn()
   createdAt: Date;

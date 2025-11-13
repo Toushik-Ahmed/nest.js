@@ -55,4 +55,8 @@ export class UsersService {
       deleted: true,
     };
   }
+
+  public async findUserById(userId: number) {
+    return await this.userRepository.findOneBy({ id: userId }); // findOneBy will retrun a single object if use findBy it will return an array
+  }
 }
