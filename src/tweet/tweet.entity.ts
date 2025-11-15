@@ -3,10 +3,13 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Hashtag } from '../hashtag/hashtag.entity';
 import { User } from '../users/user.entity';
 
 @Entity()
@@ -38,4 +41,8 @@ export class Tweet {
   @ManyToOne(() => User, (user) => user.tweets) // when creating many to many relationships the foreign key is stored in the entity where ManyToOne is defined
   //here userId will be stored in Tweet table no need to use JoinColumn
   user: User;
+
+  @ManyToMany(() => Hashtag)
+  @JoinTable() //this decorator is used to specify that this side will own the relationship and will contain the junction table
+  hashtags: Hashtag[];
 }

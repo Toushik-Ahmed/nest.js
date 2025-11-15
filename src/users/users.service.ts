@@ -21,7 +21,15 @@ export class UsersService {
       }, //include profile data with user
     });
   }
-  getUserById(id: number) {}
+  public async getUserById(id: number) {
+    return await this.userRepository.findOne({
+      where: { id },
+      relations: {
+        profile: true,
+        tweets: true,
+      },
+    });
+  }
 
   getUserByParams(id: number, age: number, name: string) {}
 

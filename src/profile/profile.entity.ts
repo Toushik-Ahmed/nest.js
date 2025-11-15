@@ -50,6 +50,6 @@ export class Profile {
   profileImage: string;
 
   @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
-  @JoinColumn() // creates the foreign key column as profileId in User table
+  @JoinColumn() // creates the foreign key column as userId in Profile table
   user: User;
 }
