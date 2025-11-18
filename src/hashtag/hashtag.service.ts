@@ -23,4 +23,21 @@ export class HashtagService {
       },
     });
   }
+
+  // public async deleteHashtags(id: number) {
+  //   await this.hashtagRepository.delete(id);
+  //   return {
+  //     message: `deleted hastag "${id}" `,
+  //     delett: true,
+  //   };
+  // }
+
+  //soft delete
+  public async deleteHashtags(id: number) {
+    await this.hashtagRepository.softDelete(id);
+    return {
+      message: `deleted hastag "${id}" `,
+      delett: true,
+    };
+  }
 }

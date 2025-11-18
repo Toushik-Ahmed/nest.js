@@ -42,7 +42,7 @@ export class Tweet {
   //here userId will be stored in Tweet table no need to use JoinColumn
   user: User;
 
-  @ManyToMany(() => Hashtag)
+  @ManyToMany(() => Hashtag, (hastag) => hastag.tweets)
   @JoinTable() //this decorator is used to specify that this side will own the relationship and will contain the junction table
   hashtags: Hashtag[];
 }
