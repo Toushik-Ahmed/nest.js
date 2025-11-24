@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
@@ -15,13 +16,13 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  // @Get()
-  // getUsers(
-  //   @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  //   @Query('page', new DefaultValuePipe(1)) page: number,
-  // ) {
-  //   return this.usersService.getAllUser();
-  // }
+  @Get()
+  getUsers(
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('page', new DefaultValuePipe(1)) page: number,
+  ) {
+    return this.usersService.getAllUser();
+  }
   // // @Get(':id/:age/:name')
   // findUser(
   //   @Param('id', ParseIntPipe) id: number,
@@ -33,7 +34,7 @@ export class UsersController {
 
   @Get(':id')
   findUser(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.getUserById(id);
+    return this.usersService.findUserById(id);
   }
 
   @Get()

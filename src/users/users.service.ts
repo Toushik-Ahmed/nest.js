@@ -1,6 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  RequestTimeoutException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UserAlreadyExistsException } from '../customExceptions/user-already-exists.exception';
 import { Profile } from '../profile/profile.entity';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { User } from './user.entity';
@@ -14,12 +20,16 @@ export class UsersService {
     private profileRepository: Repository<Profile>,
   ) {}
 
-  getAllUser() {
-    return this.userRepository.find({
-      relations: {
-        profile: true,
-      }, //include profile data with user
-    });
+  public async getAllUser() {
+    try {
+      return await this.userRepository.find({
+        relations: {
+          profile: true,
+        }, //include profile data with user
+      });
+    } catch (error) {
+      throw new RequestTimeoutException('An error has occured ');
+    }
   }
   public async getUserById(id: number) {
     return await this.userRepository.findOne({
@@ -36,11 +46,36 @@ export class UsersService {
   getUsersByQuery(gender: string, isMarried: boolean) {}
 
   public async createUser(userDto: CreateUserDto) {
-    userDto.profile = userDto.profile ?? {}; // ensure profile is at least an empty object
+    try {
+      userDto.profile = userDto.profile ?? {}; // ensure profile is at least an empty object
 
-    //create user and link profile
-    let user = this.userRepository.create(userDto);
-    return this.userRepository.save(user);
+      //check if a user exists with given data
+      const existingUserWithUserName = await this.userRepository.findOne({
+        where: [{ userName: userDto.userName }],
+      });
+
+      if (existingUserWithUserName) {
+        throw new UserAlreadyExistsException('userName', userDto.userName);
+      }
+
+      const existingUserWithEmail = await this.userRepository.findOne({
+        where: [{ email: userDto.email }],
+      });
+
+      if (existingUserWithEmail) {
+        throw new UserAlreadyExistsException('userName', userDto.email);
+      }
+
+      //create user and link profile
+      let user = this.userRepository.create(userDto);
+      return this.userRepository.save(user);
+    } catch (error) {
+      if (error.code === 'ECONNREFUSED')
+        throw new RequestTimeoutException('An error has occured ', {
+          description: 'Could not connect to the database',
+        });
+      throw error;
+    }
   }
 
   public async deleteUser(id: number) {
@@ -65,6 +100,17 @@ export class UsersService {
   }
 
   public async findUserById(userId: number) {
-    return await this.userRepository.findOneBy({ id: userId }); // findOneBy will retrun a single object if use findBy it will return an array
+    const user = await this.userRepository.findOneBy({ id: userId }); // findOneBy will retrun a single object if use findBy it will return an array
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'The user was  not found',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return user;
   }
 }
