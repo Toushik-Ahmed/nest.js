@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from '../auth/auth.module';
 import { PaginationModule } from '../common/pagination/pagination.module';
 import { Profile } from '../profile/profile.entity';
 import { User } from './user.entity';
@@ -10,6 +11,10 @@ import { UsersService } from './users.service';
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],
-  imports: [PaginationModule, TypeOrmModule.forFeature([User, Profile])],
+  imports: [
+    PaginationModule,
+    forwardRef(() => AuthModule),
+    TypeOrmModule.forFeature([User, Profile]),
+  ],
 })
 export class UsersModule {}

@@ -1,11 +1,14 @@
 import {
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   RequestTimeoutException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { HashingProvider } from '../auth/provider/hashing.provider';
 import { PaginationDto } from '../common/pagination/dto/pagination-query.dto';
 import { PaginationProvider } from '../common/pagination/pagination.provider';
 import { UserAlreadyExistsException } from '../customExceptions/user-already-exists.exception';
@@ -21,6 +24,8 @@ export class UsersService {
     @InjectRepository(Profile)
     private profileRepository: Repository<Profile>,
     private readonly paginatoinProvider: PaginationProvider,
+    @Inject(forwardRef(() => HashingProvider))
+    private readonly hashingProvider: HashingProvider,
   ) {}
 
   public async getAllUser(paginationDto: PaginationDto) {
@@ -71,7 +76,10 @@ export class UsersService {
       }
 
       //create user and link profile
-      let user = this.userRepository.create(userDto);
+      let user = this.userRepository.create({
+        ...userDto,
+        password: await this.hashingProvider.hashPassword(userDto.password),
+      });
       return this.userRepository.save(user);
     } catch (error) {
       if (error.code === 'ECONNREFUSED')

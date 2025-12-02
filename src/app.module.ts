@@ -8,6 +8,7 @@ import { ProfileModule } from './profile/profile.module';
 import { TweetModule } from './tweet/tweet.module';
 import { UsersModule } from './users/users.module';
 import { PaginationModule } from './common/pagination/pagination.module';
+import { AuthModule } from './auth/auth.module';
 
 const ENV = process.env.NODE_ENV;
 @Module({
@@ -35,6 +36,7 @@ const ENV = process.env.NODE_ENV;
       }),
     }),
     PaginationModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
