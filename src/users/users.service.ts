@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PaginationDto } from '../common/pagination/dto/pagination-query.dto';
+import { PaginationProvider } from '../common/pagination/pagination.provider';
 import { UserAlreadyExistsException } from '../customExceptions/user-already-exists.exception';
 import { Profile } from '../profile/profile.entity';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -18,15 +20,17 @@ export class UsersService {
     private userRepository: Repository<User>,
     @InjectRepository(Profile)
     private profileRepository: Repository<Profile>,
+    private readonly paginatoinProvider: PaginationProvider,
   ) {}
 
-  public async getAllUser() {
+  public async getAllUser(paginationDto: PaginationDto) {
     try {
-      return await this.userRepository.find({
-        relations: {
-          profile: true,
-        }, //include profile data with user
-      });
+      return this.paginatoinProvider.paginateQuery(
+        paginationDto,
+        this.userRepository,
+        {},
+        ['profile'],
+      );
     } catch (error) {
       throw new RequestTimeoutException('An error has occured ');
     }

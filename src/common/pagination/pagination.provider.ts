@@ -17,6 +17,7 @@ export class PaginationProvider {
     paginationQueryDto: PaginationDto,
     repository: Repository<T>,
     where?: FindOptionsWhere<T>,
+    relations?: string[],
   ): Promise<Pagination<T>> {
     const findOptions: FindManyOptions<T> = {
       skip:
@@ -25,6 +26,9 @@ export class PaginationProvider {
     };
     if (where) {
       findOptions.where = where;
+    }
+    if (relations) {
+      findOptions.relations = relations;
     }
 
     const result = await repository.find(findOptions);

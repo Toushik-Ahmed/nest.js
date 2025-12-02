@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
   Param,
@@ -9,6 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { PaginationDto } from '../common/pagination/dto/pagination-query.dto';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UsersService } from './users.service';
 
@@ -17,11 +17,8 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  getUsers(
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('page', new DefaultValuePipe(1)) page: number,
-  ) {
-    return this.usersService.getAllUser();
+  getUsers(@Query() paginationQueryDto: PaginationDto) {
+    return this.usersService.getAllUser(paginationQueryDto);
   }
   // // @Get(':id/:age/:name')
   // findUser(
