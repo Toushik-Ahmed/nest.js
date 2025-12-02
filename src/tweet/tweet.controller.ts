@@ -7,7 +7,9 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
+import { PaginationDto } from '../common/pagination/dto/pagination-query.dto';
 import { CreateTweetDto } from './dto/create-tweet.dto';
 import { UpdateTweetDto } from './dto/update-tweet.dto';
 import { TweetService } from './tweet.service';
@@ -17,8 +19,13 @@ export class TweetController {
   constructor(private tweetService: TweetService) {}
 
   @Get(':userId')
-  getAllTweetsByUser(@Param('userId', ParseIntPipe) userId: number) {
-    return this.tweetService.getTweetsByUserId(userId);
+  getAllTweetsByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    // if there are other query params we can intersect them .exxample is in get-tweet-dto.ts
+    console.log('page:', paginationDto.page, 'limit:', paginationDto.limit);
+    return this.tweetService.getTweetsByUserId(userId, paginationDto);
   }
 
   @Post()

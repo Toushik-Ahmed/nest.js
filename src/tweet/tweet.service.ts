@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PaginationDto } from '../common/pagination/dto/pagination-query.dto';
+import { Pagination } from '../common/pagination/paginate.interface';
+import { PaginationProvider } from '../common/pagination/pagination.provider';
 import { Hashtag } from '../hashtag/hashtag.entity';
 import { HashtagService } from '../hashtag/hashtag.service';
 import { UsersService } from '../users/users.service';
@@ -13,21 +16,24 @@ export class TweetService {
   constructor(
     private readonly usersService: UsersService,
     private readonly hastagService: HashtagService,
+    private readonly paginationProvider: PaginationProvider,
     @InjectRepository(Tweet)
     private readonly tweetRepository: Repository<Tweet>,
   ) {}
 
-  public async getTweetsByUserId(userId: number) {
+  public async getTweetsByUserId(
+    userId: number,
+    paginationDto: PaginationDto,
+  ): Promise<Pagination<Tweet>> {
     const user = await this.usersService.findUserById(userId);
     if (!user) {
       throw new NotFoundException(`user with userId ${userId} not  found`); // exception handling
     }
-    return await this.tweetRepository.find({
-      where: {
-        user: { id: userId },
-      },
-      relations: { user: true, hashtags: true },
-    });
+    return await this.paginationProvider.paginateQuery(
+      paginationDto,
+      this.tweetRepository,
+      { user: { id: userId } },
+    );
   }
 
   public async createTweet(createTweetDto: CreateTweetDto) {

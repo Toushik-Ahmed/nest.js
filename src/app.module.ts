@@ -7,6 +7,7 @@ import { HashtagModule } from './hashtag/hashtag.module';
 import { ProfileModule } from './profile/profile.module';
 import { TweetModule } from './tweet/tweet.module';
 import { UsersModule } from './users/users.module';
+import { PaginationModule } from './common/pagination/pagination.module';
 
 const ENV = process.env.NODE_ENV;
 @Module({
@@ -33,6 +34,7 @@ const ENV = process.env.NODE_ENV;
         database: configService.get('DB_NAME'),
       }),
     }),
+    PaginationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
