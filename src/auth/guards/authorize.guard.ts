@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import authConfig from '../config/auth.config';
@@ -16,8 +17,20 @@ export class AuthorizeGuard implements CanActivate {
     private readonly jwtService: JwtService,
     @Inject(authConfig.KEY)
     private readonly authConfiguration: ConfigType<typeof authConfig>,
+    private readonly reflector: Reflector,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    //0. Check if the route is marked as AllowAnonymous
+    //*** this is  for to check if the requested route is public */
+    let isPublic = this.reflector.getAllAndOverride('allowAnonymous', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true;
+    }
+
     //1. Extract request from context
     const request: Request = context.switchToHttp().getRequest();
 
