@@ -13,6 +13,7 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
+// @UseGuards(AuthorizeGuard) **//aplly for all routes in this controller level
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
@@ -20,15 +21,8 @@ export class UsersController {
   getUsers(@Query() paginationQueryDto: PaginationDto) {
     return this.usersService.getAllUser(paginationQueryDto);
   }
-  // // @Get(':id/:age/:name')
-  // findUser(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Param('age', ParseIntPipe) age: number,
-  //   @Param('name') name: string,
-  // ) {
-  //   return this.usersService.getUserByParams(id, age, name);
-  // }
 
+  //@UseGuards(AuthorizeGuard) //apply for specific route
   @Get(':id')
   findUser(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findUserById(id);

@@ -1,14 +1,17 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import authConfig from './auth/config/auth.config';
+import { AuthorizeGuard } from './auth/guards/authorize.guard';
+import { PaginationModule } from './common/pagination/pagination.module';
 import { HashtagModule } from './hashtag/hashtag.module';
 import { ProfileModule } from './profile/profile.module';
 import { TweetModule } from './tweet/tweet.module';
 import { UsersModule } from './users/users.module';
-import { PaginationModule } from './common/pagination/pagination.module';
-import { AuthModule } from './auth/auth.module';
 
 const ENV = process.env.NODE_ENV;
 @Module({
@@ -36,9 +39,16 @@ const ENV = process.env.NODE_ENV;
       }),
     }),
     PaginationModule,
-    AuthModule,
+    ConfigModule.forFeature(authConfig),
+    JwtModule.registerAsync(authConfig.asProvider()),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD, // creating a global guard
+      useClass: AuthorizeGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   RequestTimeoutException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -122,6 +123,21 @@ export class UsersService {
         },
         HttpStatus.NOT_FOUND,
       );
+    }
+    return user;
+  }
+
+  public async findUserByEmail(email: string) {
+    let user: User | null = null;
+    try {
+      user = await this.userRepository.findOneBy({ email });
+    } catch (error) {
+      throw new RequestTimeoutException(error, {
+        description: 'Could not connect to the database',
+      });
+    }
+    if (!user) {
+      throw new UnauthorizedException('usernnot found');
     }
     return user;
   }
