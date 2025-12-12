@@ -9,6 +9,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { ActiveUser } from '../auth/decorators/active-user.decorator';
 import { PaginationDto } from '../common/pagination/dto/pagination-query.dto';
 import { CreateTweetDto } from './dto/create-tweet.dto';
 import { UpdateTweetDto } from './dto/update-tweet.dto';
@@ -29,8 +30,12 @@ export class TweetController {
   }
 
   @Post()
-  public createTweet(@Body() createTweetDto: CreateTweetDto) {
-    return this.tweetService.createTweet(createTweetDto);
+  public createTweet(
+    @Body() createTweetDto: CreateTweetDto,
+    @ActiveUser('sub') userId: number, // here we are getting the user info from the request
+  ) {
+    console.log('user info from request', userId);
+    return this.tweetService.createTweet(createTweetDto, userId);
   }
 
   @Patch()

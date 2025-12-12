@@ -7,9 +7,12 @@ import {
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
+import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import authConfig from './config/auth.config';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ActiveUserType } from './interfaces/active-user-type';
 import { HashingProvider } from './provider/hashing.provider';
 
 @Injectable()
@@ -44,23 +47,62 @@ export class AuthService {
     }
 
     //if the password mached retun login success and return access token
-    const token = await this.jwtService.signAsync(
+    return this.generateToken(user);
+  }
+
+  private async signToken<T>(userId: number, expiresIn: string, payload?: T) {
+    return await this.jwtService.signAsync(
       {
-        sub: user.id,
-        email: user.email,
+        sub: userId,
+        ...payload,
       },
       {
         secret: this.authConfiguration.secret,
-        expiresIn: parseInt(this.authConfiguration.expiresIn as string),
+        expiresIn: parseInt(expiresIn),
         audience: this.authConfiguration.audience,
         issuer: this.authConfiguration.issuer,
       },
     );
+  }
+
+  private async generateToken(user: User) {
+    const accessTOken = await this.signToken<Partial<ActiveUserType>>(
+      user.id,
+      this.authConfiguration.expiresIn as string,
+      { email: user.email },
+    );
+
+    const refreshToken = await this.signToken(
+      user.id,
+      this.authConfiguration.refreshTokenExpiration as string,
+    );
 
     return {
-      token: token,
-      message: 'login success',
-      success: true,
+      accessTOken,
+      refreshToken,
     };
+  }
+
+  public async refreshToken(refreshToken: RefreshTokenDto) {
+    try {
+      // verify the refresh token
+      const { sub } = await this.jwtService.verifyAsync(
+        refreshToken.refreshToken,
+        {
+          secret: this.authConfiguration.secret,
+          audience: this.authConfiguration.audience,
+          issuer: this.authConfiguration.issuer,
+        },
+      );
+
+      //find the user from the db
+      const user = await this.usersService.findUserById(sub);
+
+      //generate new access token and refresh token
+
+      return await this.generateToken(user);
+    } catch (error) {
+      throw new UnauthorizedException(error);
+    }
   }
 }

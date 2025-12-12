@@ -9,6 +9,7 @@ import { ConfigType } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { Request_User_Key } from '../../constants/constants';
 import authConfig from '../config/auth.config';
 
 @Injectable()
@@ -47,8 +48,7 @@ export class AuthorizeGuard implements CanActivate {
         token,
         this.authConfiguration,
       );
-      request['user'] = payload;
-      console.log('payload:', payload);
+      request[Request_User_Key] = payload;
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
     }

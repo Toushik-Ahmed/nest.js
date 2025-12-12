@@ -15,9 +15,9 @@ export class CreateTweetDto {
   @IsString()
   image?: string;
 
-  @IsNotEmpty()
-  @IsInt()
-  userId: number;
+  // @IsNotEmpty()
+  // @IsInt()
+  // userId: number;
 
   @IsOptional()
   @IsArray()

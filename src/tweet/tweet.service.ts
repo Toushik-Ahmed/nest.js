@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  RequestTimeoutException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaginationDto } from '../common/pagination/dto/pagination-query.dto';
@@ -6,6 +12,7 @@ import { Pagination } from '../common/pagination/paginate.interface';
 import { PaginationProvider } from '../common/pagination/pagination.provider';
 import { Hashtag } from '../hashtag/hashtag.entity';
 import { HashtagService } from '../hashtag/hashtag.service';
+import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { CreateTweetDto } from './dto/create-tweet.dto';
 import { UpdateTweetDto } from './dto/update-tweet.dto';
@@ -36,16 +43,26 @@ export class TweetService {
     );
   }
 
-  public async createTweet(createTweetDto: CreateTweetDto) {
-    //find the user by userId
-    const user = await this.usersService.findUserById(createTweetDto.userId);
-
-    //fetch all the hashtags
+  public async createTweet(createTweetDto: CreateTweetDto, userId: number) {
+    let user: User | undefined = undefined;
     let hashtags: Hashtag[] = [];
-    if (createTweetDto?.hashtags?.length) {
-      hashtags = await this.hastagService.findByHashTags(
-        createTweetDto.hashtags,
-      );
+
+    try {
+      //find the user by userId
+      user = await this.usersService.findUserById(userId);
+
+      //fetch all the hashtags
+      if (createTweetDto?.hashtags?.length) {
+        hashtags = await this.hastagService.findByHashTags(
+          createTweetDto.hashtags,
+        );
+      }
+    } catch (error) {
+      throw new RequestTimeoutException();
+    }
+
+    if (createTweetDto.hashtags?.length !== hashtags.length) {
+      throw new BadRequestException();
     }
 
     //create the tweet
@@ -55,7 +72,11 @@ export class TweetService {
         user,
         hashtags,
       });
-      return this.tweetRepository.save(tweet);
+      try {
+        return this.tweetRepository.save(tweet);
+      } catch (error) {
+        throw new ConflictException(error);
+      }
     }
   }
 
